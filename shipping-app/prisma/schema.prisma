@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Shipment {
+  id String @id @default(uuid()) @db.Uuid
+  purchaseOrderId String @db.Uuid
+  packageId String @db.Uuid
+  carrierName String
+  shippingCost Decimal @db.Decimal(10, 2)
+  addressSnapshot String
+  dispatchedAt DateTime?
+  deliveredAt DateTime?
+  status ShipmentStatus
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@map("shipments")
+}
+
+enum ShipmentStatus {
+  PENDING
+  DISPATCHED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id String @id @default(uuid()) @db.Uuid
+
+  shipments Shipment[]
+}
+
+model Package {
+id String @id @default(uuid()) @db.Uuid
+
+shipments Shipment[]
+}
