@@ -21,8 +21,6 @@ model Shipment {
   dispatchedAt DateTime?
   deliveredAt DateTime?
   status ShipmentStatus
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  package Package @relation(fields: [packageId], references: [id])
 
   @@map("shipments")
 }
@@ -33,16 +31,4 @@ enum ShipmentStatus {
   IN_TRANSIT
   DELIVERED
   CANCELLED
-}
-
-model PurchaseOrder {
-  id String @id @default(uuid()) @db.Uuid
-
-  shipments Shipment[]
-}
-
-model Package {
-id String @id @default(uuid()) @db.Uuid
-
-shipments Shipment[]
 }
