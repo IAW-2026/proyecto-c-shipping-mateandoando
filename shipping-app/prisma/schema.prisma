@@ -14,21 +14,33 @@ datasource db {
 model Shipment {
   id String @id @default(uuid()) @db.Uuid
   purchaseOrderId String @db.Uuid
-  packageId String @db.Uuid
+  packageId String  @unique @db.Uuid
   carrierName String
   shippingCost Decimal @db.Decimal(10, 2)
   addressSnapshot String
   dispatchedAt DateTime?
   deliveredAt DateTime?
   status ShipmentStatus
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  history ShipmentHistory[] //Relacion uno a muchos: un envio tiene muchos movimientos en su historial. 
 
   @@map("shipments")
 }
 
 enum ShipmentStatus {
-  PENDING
-  DISPATCHED
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
+  PENDIENTE
+  DESPACHADO
+  EN_TRANSITO
+  ENTREGADO
+  RETORNADO
+}
+
+model ShipmentHistory {
+  id String @id @default(uuid())
+  date DateTime @default(now())
+  event String 
+
+  shipmentId  String @db.Uuid
+  shipments   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
 }

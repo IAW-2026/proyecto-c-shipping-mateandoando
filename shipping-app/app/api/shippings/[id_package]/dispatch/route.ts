@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { ShipmentStatus } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 
+interface DispatchRequestBody {
+  carrier_name: string;
+  shipping_cost: number;
+  address_snapshot: string;
+}
+
 type RouteParams = { params: Promise<{ id_package: string }> };
 
 export async function PATCH(
@@ -9,7 +15,7 @@ export async function PATCH(
   { params }: RouteParams
 ) {
   try {
-    const body = await request.json();
+    const body: DispatchRequestBody = await request.json();
     const { id_package } = await params;
 
     if (!body.carrier_name || !body.shipping_cost || !body.address_snapshot) {
@@ -27,7 +33,7 @@ export async function PATCH(
         shippingCost: body.shipping_cost, 
         addressSnapshot: body.address_snapshot,
         dispatchedAt: new Date(),
-        status: ShipmentStatus.DISPATCHED,
+        status: ShipmentStatus.DESPACHADO,
       },
     });
 
