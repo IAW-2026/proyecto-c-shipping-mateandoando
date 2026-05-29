@@ -23,6 +23,10 @@ model Shipment {
   status ShipmentStatus
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  buyerId         String?
+  buyerName       String?
+  buyerPhone      String?
+  buyerEmail      String?
   history ShipmentHistory[] //Relacion uno a muchos: un envio tiene muchos movimientos en su historial. 
 
   @@map("shipments")
