@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 export default function Home() {
   // Estados para el rastreo del paquete
@@ -63,12 +62,12 @@ export default function Home() {
             </div>
           </div>
 
-          <Link 
+          <a 
             href="/operador" 
             className="text-xs font-semibold px-4 h-9 flex items-center rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
           >
              Acceso Operadores
-          </Link>
+          </a>
         </div>
       </header>
 

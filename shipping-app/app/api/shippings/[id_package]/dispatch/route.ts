@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ShipmentStatus } from "@prisma/client";
 import { prisma } from "../../../../lib/prisma";
 
-// 1. Actualizamos la interfaz para exigir el id_user que te va a mandar la Seller App
 interface DispatchRequestBody {
+  id_package: string;
   carrier_name: string;
   shipping_cost: number;
   address_snapshot: string;
@@ -17,24 +17,37 @@ export async function PATCH(
   { params }: RouteParams
 ) {
   try {
+    const apiKey = request.headers.get("x-api-key");
+    const validApiKey = process.env.SHIPPING_API_KEY;
+
+    if (!apiKey || apiKey !== validApiKey) {
+      return NextResponse.json(
+        { error: "Acceso no autorizado. API Key inválida o faltante." },
+        { status: 401 }
+      );
+    }
+
     const body: DispatchRequestBody = await request.json();
     const { id_package } = await params;
 
-    // Controlamos que venga el id_user obligatorio
-    if (!body.carrier_name || !body.shipping_cost || !body.address_snapshot || !body.id_user) {
+    if (!body.id_package || !body.carrier_name || !body.shipping_cost || !body.address_snapshot || !body.id_user) {
       return NextResponse.json(
-        { error: "Faltan campos requeridos en el body (incluyendo id_user)" },
+        { error: "Faltan campos requeridos en el body" },
         { status: 400 }
       );
     }
 
-    // 2. COMUNICACIÓN B2B: Vamos a buscar al comprador a la Buyer App de tu compañero
     const BUYER_APP_URL = process.env.BUYER_APP_URL || "http://localhost:3001"; 
     let customerData = null;
 
     try {
-      // Le pegamos al endpoint de tu compañero usando el id_user recibido
-      const buyerResponse = await fetch(`${BUYER_APP_URL}/api/customers/${body.id_user}`);
+      const buyerResponse = await fetch(`${BUYER_APP_URL}/api/customers/${body.id_user}`, {
+        method: "GET", 
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.BUYER_API_KEY || "" 
+        }
+      });
       
       if (buyerResponse.ok) {
         customerData = await buyerResponse.json();
@@ -42,12 +55,9 @@ export async function PATCH(
         console.warn(`La Buyer App respondió con estado: ${buyerResponse.status}`);
       }
     } catch (fetchError) {
-      // Si la app de tu compañero está apagada o da timeout, lo atajamos acá 
-      // para que tu proceso de despacho no se cancele por culpa de un externo.
       console.error("No se pudo conectar con la Buyer App:", fetchError);
     }
 
-    // 3. CREACIÓN EN TU BASE DE DATOS DE NEON (Con tus nuevas columnas cargadas)
     const shipment = await prisma.shipment.create({
       data: {
         purchaseOrderId: crypto.randomUUID(), 
@@ -58,7 +68,6 @@ export async function PATCH(
         dispatchedAt: new Date(),
         status: ShipmentStatus.DESPACHADO,
         
-        // Guardamos la información que recolectamos de la otra app
         buyerId: body.id_user,
         buyerName: customerData ? `${customerData.first_name} ${customerData.last_name}` : "No disponible",
         buyerPhone: customerData?.phone || "No disponible",
@@ -66,7 +75,6 @@ export async function PATCH(
       },
     });
 
-    // 4. RESPUESTA (Respetando tu formato original)
     return NextResponse.json({
       id_shipments: shipment.id,
       status: shipment.status,
