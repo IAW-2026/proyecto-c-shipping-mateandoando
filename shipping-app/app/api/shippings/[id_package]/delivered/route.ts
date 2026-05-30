@@ -11,7 +11,6 @@ export async function PATCH(
   try {
     const { id_package } = await params;
 
-    // Actualizamos el envio y creamos el evento en el historial al mismo tiempo
     const updatedShipment = await prisma.shipment.update({
       where: { packageId: id_package },
       data: {
@@ -27,7 +26,7 @@ export async function PATCH(
 
     return NextResponse.json({
       id_shipments: updatedShipment.id,
-      status: updatedShipment.status, // Devolverá "DELIVERED" (el valor real de tu enum)
+      status: updatedShipment.status, 
       delivered_at: updatedShipment.deliveredAt?.toISOString().split("T")[0] // Formato YYYY-MM-DD
     });
 
