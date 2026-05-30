@@ -1,14 +1,16 @@
 "use client";
 
+import { useClerk } from "@clerk/nextjs"; // Importamos useClerk
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { SignOutButton } from "@clerk/nextjs";
 
 export default function OperadorPage() {
+  const { signOut } = useClerk(); // Obtenemos la función signOut
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Cargar los paquetes desde Neon al entrar a la página
   const fetchShipments = async () => {
     try {
       const res = await fetch("/api/shippings");
@@ -27,7 +29,6 @@ export default function OperadorPage() {
     fetchShipments();
   }, []);
 
-  // Función para pegarle al PATCH de cambio de estado
   const handleStatusChange = async (id: string, newStatus: string) => {
     setUpdatingId(id);
     try {
@@ -38,7 +39,6 @@ export default function OperadorPage() {
       });
 
       if (res.ok) {
-        // Si salió bien, recargamos la lista para ver los datos frescos
         await fetchShipments();
       } else {
         alert("No se pudo actualizar el estado.");
@@ -60,12 +60,25 @@ export default function OperadorPage() {
             <h1 className="text-2xl font-bold tracking-tight">Panel de Control Logístico</h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Portal exclusivo para operadores y repartidores de correo.</p>
           </div>
-          <Link 
-            href="/" 
-            className="text-xs font-semibold px-4 h-9 flex items-center rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 text-zinc-600 dark:text-zinc-300 transition-colors"
-          >
-            ← Volver al Rastreo Público
-          </Link>
+          
+          {/* BOTONES DE ACCIÓN */}
+          <div className="flex items-center gap-3">
+            <button
+            onClick={async () => {
+                await signOut();
+                window.location.href = "/";
+            }}
+            >
+            Cerrar Sesión
+            </button>
+            
+            <Link 
+              href="/" 
+              className="text-xs font-semibold px-4 h-9 flex items-center rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 text-zinc-600 dark:text-zinc-300 transition-colors"
+            >
+              ← Volver
+            </Link>
+          </div>
         </div>
 
         {/* TABLA DE CONTROL */}
@@ -135,7 +148,6 @@ export default function OperadorPage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );
