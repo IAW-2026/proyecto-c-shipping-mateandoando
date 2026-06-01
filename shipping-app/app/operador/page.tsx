@@ -13,13 +13,9 @@ export default function OperadorPage() {
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  
-  // Lo que el usuario escribe en la barrita
   const [inputValue, setInputValue] = useState("");
-  // La búsqueda final que se aplica cuando aprieta el botón
   const [activeQuery, setActiveQuery] = useState("");
 
-  // 1. Al cargar la página, leemos la URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const queryFromUrl = params.get("search") || "";
@@ -64,14 +60,9 @@ export default function OperadorPage() {
     }
   };
 
-  // 2. Esta función SOLO se ejecuta cuando tocás el botón o das Enter
   const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Evita que la página se recargue por defecto
-    
-    // Aplicamos el filtro a la tabla
+    e.preventDefault(); 
     setActiveQuery(inputValue);
-    
-    // Cambiamos la URL
     const params = new URLSearchParams(window.location.search);
     if (inputValue) {
       params.set("search", inputValue);
@@ -82,7 +73,6 @@ export default function OperadorPage() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  // 3. Limpiar la búsqueda
   const handleClear = () => {
     setInputValue("");
     setActiveQuery("");
@@ -91,7 +81,6 @@ export default function OperadorPage() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  // 4. Filtramos los paquetes usando "activeQuery" (no lo que estás tipeando)
   const filteredShipments = shipments.filter((shipment) => {
     if (!activeQuery) return true;
     const q = activeQuery.toLowerCase();

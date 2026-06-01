@@ -34,7 +34,6 @@ export default function Home() {
     }
   };
 
-  // Función auxiliar para darle color a las pastillas de estado
   const getStatusBadgeClass = (status: string) => {
     const s = status?.toUpperCase() || "";
     if (s.includes("DELIVERED") || s.includes("ENTREGADO")) {
