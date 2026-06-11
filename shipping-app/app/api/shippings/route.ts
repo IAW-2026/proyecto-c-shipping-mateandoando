@@ -1,4 +1,3 @@
-// app/api/shippings/route.ts (Ruta interna para tu tabla)
 import { NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 
