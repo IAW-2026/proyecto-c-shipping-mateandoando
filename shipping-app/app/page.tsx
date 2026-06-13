@@ -147,27 +147,42 @@ export default function Home() {
             <div className="p-6 sm:p-8 space-y-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Historial de Movimientos</h3>
               
-              <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-2.5 pl-6 space-y-6">
+              {/* 1. Le sacamos el border-l-2 a este contenedor general */}
+              <div className="ml-2.5 space-y-6">
                 {trackingResult.history && trackingResult.history.length > 0 ? (
-                  trackingResult.history.map((item: any, i: number) => {
-                    const isFirst = i === 0;
+                  [...trackingResult.history].sort((a: any, b: any) => {
+                    // Tomamos la fecha de cada evento (usamos createdAt o date según cómo se llame en tu Prisma)
+                    const tiempoA = new Date(a.createdAt || a.date || 0).getTime();
+                    const tiempoB = new Date(b.createdAt || b.date || 0).getTime();
+                    
+                    // Al restar A - B, forzamos orden ASCENDENTE (Más viejo arriba, más nuevo abajo)
+                    return tiempoA - tiempoB;
+                  }).map((item: any, i: number, array: any[]) => {
+                    const isLatest = i === array.length - 1; 
+
                     return (
-                      <div key={i} className="relative group">
+                      // 2. Pasamos el padding (pl-6) y la posición relativa a cada elemento individual
+                      <div key={i} className="relative group pl-6">
                         
-                        {/* Nodo indicador en la línea */}
-                        <span className={`absolute -left-[31px] top-1 h-3.5 w-3.5 rounded-full border-2 bg-white dark:bg-zinc-900 transition-all ${
-                          isFirst 
+                        {/* 3. LÍNEA CONECTORA: Se dibuja hacia abajo, pero se OCULTA en el último elemento */}
+                        {!isLatest && (
+                          <span className="absolute left-0 top-3 -bottom-6 w-[2px] bg-zinc-200 dark:bg-zinc-800" />
+                        )}
+
+                        {/* NODO INDICADOR: Ajustamos el left a -6px para que quede centrado en la nueva línea */}
+                        <span className={`absolute -left-[6px] top-1 h-3.5 w-3.5 rounded-full border-2 bg-white dark:bg-zinc-900 transition-all z-10 ${
+                          isLatest 
                             ? "border-blue-600 ring-4 ring-blue-100 dark:ring-blue-950/50 scale-110" 
                             : "border-zinc-400 group-hover:border-zinc-600"
                         }`} />
 
-                        {/* Contenido del hito */}
+                        {/* Contenido del hito (queda igual) */}
                         <div className="space-y-0.5">
                           <span className="text-[10px] font-mono text-zinc-400 block dark:text-zinc-500 font-medium">
                             {item.date || new Date().toLocaleString()}
                           </span>
                           <p className={`text-sm font-semibold transition-colors ${
-                            isFirst ? "text-blue-600 dark:text-blue-400 text-base" : "text-zinc-700 dark:text-zinc-300"
+                            isLatest ? "text-blue-600 dark:text-blue-400 text-base" : "text-zinc-700 dark:text-zinc-300"
                           }`}>
                             {item.event || item.description || JSON.stringify(item)}
                           </p>
@@ -180,12 +195,13 @@ export default function Home() {
                     );
                   })
                 ) : (
-                  <div className="relative">
-                    <span className="absolute -left-[31px] top-0.5 h-3.5 w-3.5 rounded-full border-2 border-blue-600 bg-white dark:bg-zinc-900 ring-4 ring-blue-100 dark:ring-blue-950/50" />
+                  // Si no hay historial, también actualizamos esta estructura para que coincida
+                  <div className="relative pl-6">
+                    <span className="absolute -left-[6px] top-0.5 h-3.5 w-3.5 rounded-full border-2 border-blue-600 bg-white dark:bg-zinc-900 ring-4 ring-blue-100 dark:ring-blue-950/50 z-10" />
                     <div className="space-y-0.5">
                       <span className="text-[10px] font-mono text-zinc-400 block">{new Date().toLocaleDateString()}</span>
                       <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">Envío Registrado / Despachado</p>
-                      <p className="text-xs text-zinc-400">El paquete ingresó al sistema informático de la central logística y espera recolección.</p>
+                      <p className="text-xs text-zinc-400">El paquete ingresó al sistema informático y espera recolección.</p>
                     </div>
                   </div>
                 )}
