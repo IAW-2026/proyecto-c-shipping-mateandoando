@@ -37,7 +37,7 @@ export async function PATCH(
       );
     }
 
-    const BUYER_APP_URL = process.env.BUYER_APP_URL || "http://localhost:3001"; 
+    const BUYER_APP_URL = process.env.NEXT_PUBLIC_BUYER_URL || "https://proyecto-c-buyer2-mateandoando.vercel.app"; 
     let customerData = null;
 
     try {

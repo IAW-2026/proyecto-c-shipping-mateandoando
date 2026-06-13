@@ -23,6 +23,7 @@ export async function PATCH(
       );
     }
 
+    // 1. ACTUALIZAMOS TU BASE DE DATOS
     const updatedShipment = await prisma.shipment.update({
       where: { packageId: id_package },
       data: {
@@ -36,9 +37,43 @@ export async function PATCH(
       }
     });
 
+    // 2. DISPARAMOS EL WEBHOOK SI EL ESTADO ES "ENTREGADO"
+    if (updatedShipment.status === "ENTREGADO") {
+      const sellerAppUrl = process.env.NEXT_PUBLIC_SELLER_URL || "https://mateandoando-seller-app.vercel.app";
+      const sellerApiKey = process.env.SELLER_API_KEY || "sk_seller_webhook_2026";
+
+      console.log(`[Webhook] Notificando a Seller App la entrega del paquete: ${id_package}`);
+
+      try {
+        const webhookRes = await fetch(`${sellerAppUrl}/api/packages/${id_package}/delivered`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": sellerApiKey
+          },
+          body: JSON.stringify({
+            status: "ENTREGADO",
+            id_shipments: updatedShipment.id
+            //delivered_at: updatedShipment.deliveredAt?.toISOString() 
+          })
+        });
+
+        if (!webhookRes.ok) {
+          console.error(`[Webhook Error] La Seller App respondió con error: ${webhookRes.status}`);
+        } else {
+          console.log(`[Webhook Success] Seller App notificada correctamente.`);
+        }
+      } catch (webhookErr) {
+        // Capturamos el error solo para loguearlo. 
+        // No frenamos la ejecución porque en NUESTRA base de datos ya se guardó con éxito.
+        console.error("[Webhook Error] Falló la conexión con la Seller App:", webhookErr);
+      }
+    }
+
+    // 3. RESPONDEMOS A TU FRONTEND
     return NextResponse.json({
       id_shipments: updatedShipment.id,
-      status: updatedShipment.status, 
+      status: updatedShipment.status,
       updated_at: updatedShipment.updatedAt.toISOString().split("T")[0] 
     });
 
