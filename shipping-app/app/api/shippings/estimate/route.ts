@@ -7,8 +7,19 @@ interface EstimateRequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: EstimateRequestBody = await request.json();
+    //Capa de seguridad con Buyer App:
+    const apiKey = request.headers.get("x-api-key");
+    const validApiKey = process.env.BUYER_API_KEY;
+
+    if (!apiKey || apiKey !== validApiKey) {
+      console.warn("Intento denegado en /estimate. Key recibida:", apiKey);
+      return NextResponse.json(
+        { error: "Acceso denegado. faltan credenciales de seguridad o son inválidas" },
+        { status: 401 }
+      );
+    }
     
+    const body: EstimateRequestBody = await request.json();
     if (!body.destination_zip_code) {
         return NextResponse.json(
             { error: "Falta el campo destination_zip_code en el body" },

@@ -13,7 +13,19 @@ const isTrackingApi = createRouteMatcher([
   "/api/shippings/track(.*)"
 ]);
 
+const isEstimateApi = createRouteMatcher([
+  "/api/shippings/estimate(.*)"
+]);
+
 export default clerkMiddleware(async (auth, request) => {
+  // 2. EXCEPCIÓN PARA ESTIMATE:
+  // Si la petición va a /estimate, la dejamos pasar de largo. 
+  // Su propio archivo route.ts ya se encarga de validar la BUYER_API_KEY.
+  if (isEstimateApi(request)) {
+    return NextResponse.next();
+  }
+
+  // Lógica original para el resto de tus rutas
   if (isApiRoute(request) && !isTrackingApi(request)) {
     const apiKey = request.headers.get("x-api-key");
     const { userId } = await auth(); 
@@ -25,8 +37,9 @@ export default clerkMiddleware(async (auth, request) => {
     }
   }
 
-if (!isPublicRoute(request) && !isApiRoute(request)) {
-await auth.protect();
+  // Agregamos !isEstimateApi acá para que Clerk no le pida iniciar sesión
+  if (!isPublicRoute(request) && !isApiRoute(request) && !isEstimateApi(request)) {
+    await auth.protect();
   }
 });
 
