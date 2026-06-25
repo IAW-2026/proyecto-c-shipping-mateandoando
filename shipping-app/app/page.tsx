@@ -1,6 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import EmptyPackageState from "./components/EmptyPackageState";
+
+function ListaDeEnvios({ paquetes }: { paquetes: any[] }) {
+  return (
+    <div className="p-8">
+      <h2 className="text-2xl font-bold mb-6">Gestión de Envíos</h2>
+
+      {paquetes.length === 0 ? (
+        
+        <EmptyPackageState 
+          title="¡Ups! Cajita vacía" 
+          message="No encontramos ningún paquete con ese número de seguimiento. Revisá si lo escribiste bien."
+        />
+        
+      ) : (
+        
+        /* Acá iría tu tabla de paquetes normal */
+        <table className="w-full">
+           {/* ... contenido de tu tabla ... */}
+        </table>
+        
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   // Estados para el rastreo del paquete
@@ -113,11 +138,13 @@ export default function Home() {
 
           {/* MENSAJE DE ERROR */}
           {errorTrack && (
-            <div className="flex gap-2.5 items-start p-3.5 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 text-red-700 dark:text-red-400 text-sm rounded-xl">
-              <span className="text-base select-none"></span>
-              <p className="font-medium">{errorTrack}</p>
-            </div>
-          )}
+          <div className="animate-in fade-in duration-300">
+            <EmptyPackageState 
+              title="¡Ups! Paquete no encontrado" 
+              message={errorTrack} 
+            />
+          </div>
+        )}
         </div>
 
         {/* RESULTADO Y LÍNEA DE TIEMPO (TIMELINE) */}
