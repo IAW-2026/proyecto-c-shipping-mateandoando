@@ -26,6 +26,8 @@ export default function OperadorPage() {
   const [inputValue, setInputValue] = useState("");
   const [activeQuery, setActiveQuery] = useState("");
   const [copiedPackageId, setCopiedPackageId] = useState<string | null>(null);  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -74,6 +76,7 @@ export default function OperadorPage() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault(); 
     setActiveQuery(inputValue);
+    setCurrentPage(1);
     const params = new URLSearchParams(window.location.search);
     if (inputValue) {
       params.set("search", inputValue);
@@ -87,6 +90,7 @@ export default function OperadorPage() {
   const handleClear = () => {
     setInputValue("");
     setActiveQuery("");
+    setCurrentPage(1);
     const params = new URLSearchParams(window.location.search);
     params.delete("search");
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -108,6 +112,11 @@ export default function OperadorPage() {
       shipment.addressSnapshot?.toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.ceil(filteredShipments.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredShipments.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans antialiased text-zinc-900 dark:text-zinc-50 p-6">
@@ -195,7 +204,7 @@ export default function OperadorPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                  {filteredShipments.map((shipment) => {
+                  {currentItems.map((shipment) => {
                     // 2. LÓGICA DE OPCIONES DINÁMICAS (NUEVO)
                     const opcionesSiguientes = transicionesPermitidas[shipment.status] || [];
                     const esEstadoFinal = opcionesSiguientes.length === 0;
@@ -277,6 +286,35 @@ export default function OperadorPage() {
                   })}
                 </tbody>
               </table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                    Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, filteredShipments.length)} de {filteredShipments.length} paquetes
+                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      Anterior
+                    </button>
+                    
+                    <span className="text-xs font-bold px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                      {currentPage} / {totalPages}
+                    </span>
+                    
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
