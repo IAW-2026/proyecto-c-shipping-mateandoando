@@ -14,38 +14,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // --- DEFINIMOS LA FECHA DE CORTE ---
-    // Ignoramos todo lo anterior al 21 de Junio de 2026 a las 00:00 UTC
-    const FECHA_CORTE = new Date('2026-06-21T00:00:00.000Z');
-
     // 2. RECOPILACIÓN DE MÉTRICAS CON PRISMA
+    
+    // A) Total histórico de envíos
+    const totalShipments = await prisma.shipment.count();
 
-    // A) Total de envíos a partir de la fecha de corte
-    const totalShipments = await prisma.shipment.count({
-      where: {
-        createdAt: { gte: FECHA_CORTE } // Filtro de fecha aplicado
-      }
-    });
-
-    // B) Envíos agrupados por Estado (Filtrados desde el Día Cero)
+    // B) Envíos agrupados por Estado (Cuántos PENDIENTES, cuántos ENTREGADOS, etc.)
     const shipmentsByStatus = await prisma.shipment.groupBy({
       by: ['status'],
       _count: { status: true },
-      where: {
-        createdAt: { gte: FECHA_CORTE } // Filtro de fecha aplicado
-      }
     });
 
-    // C) Envíos agrupados por Empresa (Filtrados desde el Día Cero)
+    // C) Envíos agrupados por Empresa (Correo Argentino, Andreani, etc.)
     const shipmentsByCarrier = await prisma.shipment.groupBy({
       by: ['carrierName'],
       _count: { carrierName: true },
-      where: {
-        createdAt: { gte: FECHA_CORTE } // Filtro de fecha aplicado
-      }
     });
 
-    // D) Entregados en los últimos 7 días (pero que sean posteriores a la fecha de corte)
+    // D) Entregados en los últimos 7 días
     const sieteDiasAtras = new Date();
     sieteDiasAtras.setDate(sieteDiasAtras.getDate() - 7);
     
@@ -53,11 +39,11 @@ export async function GET(request: NextRequest) {
       where: {
         status: "ENTREGADO",
         deliveredAt: { gte: sieteDiasAtras },
-        createdAt: { gte: FECHA_CORTE } // Nos asegura no traer datos basura pre-coordinación
       },
     });
 
     // 3. FORMATEAR Y RESPONDER
+    // Acomodamos los datos para que al Dashboard le sea súper fácil leerlos
     return NextResponse.json({
       total_shipments: totalShipments,
       recent_deliveries: recentDeliveries,
