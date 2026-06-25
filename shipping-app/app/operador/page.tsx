@@ -229,7 +229,7 @@ export default function OperadorPage() {
                         </td>
                         <td className="p-4">
                           <div className="font-medium">{shipment.buyerName || "No asignado"}</div>
-                          <div className="text-[10px] text-zinc-400">{shipment.buyerPhone || "Sin tel"}</div>
+                          <div className="text-[10px] text-zinc-400">{shipment.buyerEmail || "Sin email"}</div>
                         </td>
                         <td className="p-4 text-xs text-zinc-500 dark:text-zinc-400 max-w-[180px] truncate" title={shipment.addressSnapshot}>
                           {shipment.addressSnapshot}
