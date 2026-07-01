@@ -19,6 +19,14 @@ export async function GET(request: NextRequest) {
     // A) Total histórico de envíos
     const totalShipments = await prisma.shipment.count();
 
+    // --- LO NUEVO: Sumar el costo de todos los envíos ---
+    const metricasCostos = await prisma.shipment.aggregate({
+      _sum: { shippingCost: true },
+    });
+    // Convertimos a Number por si Prisma devuelve un objeto Decimal
+    const totalCost = metricasCostos._sum.shippingCost ? Number(metricasCostos._sum.shippingCost) : 0;
+    // ----------------------------------------------------
+
     // B) Envíos agrupados por Estado (Cuántos PENDIENTES, cuántos ENTREGADOS, etc.)
     const shipmentsByStatus = await prisma.shipment.groupBy({
       by: ['status'],
@@ -46,6 +54,7 @@ export async function GET(request: NextRequest) {
     // Acomodamos los datos para que al Dashboard le sea súper fácil leerlos
     return NextResponse.json({
       total_shipments: totalShipments,
+      total_cost: totalCost, // <-- Enviamos el costo total al Dashboard para arreglar la barra
       recent_deliveries: recentDeliveries,
       by_status: shipmentsByStatus.map(s => ({
         status: s.status,
